@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Couples Future Checker</title>
+
+  <!-- Bootstrap   -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!--  Font Awesome for the heart icon  -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    /* ───────────  Background video  ─────────── */
+    #bg-video{
+      position:fixed;right:0;bottom:0;min-width:100%;min-height:100%;
+      object-fit:cover;z-index:-1;
+    }
+
+    /* ───────────  Base styles  ─────────── */
+    body{
+      font-family:'Segoe UI',sans-serif;
+      color:#4d0039;margin:0;min-height:100vh;
+    }
+    .card{
+      margin:20px 10px;
+      background:rgba(255,255,255,.2);
+      border-radius:20px;
+      box-shadow:0 10px 25px rgba(0,0,0,.4);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.3);
+    }
+    h3,.form-label,.result-box{color:#4d0039;text-shadow:0 1px 3px rgba(255,255,255,.6);}
+
+    /*  Button  */
+    .btn-check-future{
+      background:#d63384;color:#fff;border:none;
+      transition:background-color .3s;
+    }
+    .btn-check-future:hover{background:#ad296d;}
+
+    /*  Heart animation  */
+    .heart-beat{
+      font-size:80px;color:#d63384;
+      animation:beat .8s infinite;
+    }
+    @keyframes beat{
+      0%,100%{transform:scale(1);}
+      50%    {transform:scale(1.25);}
+    }
+
+    /*  Responsive tweaks  */
+    @media (max-width:576px){
+      h3{font-size:1.25rem;}
+      .form-label{font-size:.9rem;}
+      .btn-check-future{font-size:1rem;}
+      .result-percentage{font-size:1.1rem;}
+    }
+  </style>
+</head>
+<body>
+
+  <!--  🔥 Video background  -->
+  <video autoplay muted loop id="bg-video">
+    <source src="bg/game1v.mp4" type="video/mp4"/>
+    Your browser does not support HTML5 video.
+  </video>
+
+  <!--  Centered container  -->
+  <div class="container d-flex justify-content-center align-items-center" style="min-height:100vh;">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+      <div class="card p-4">
+        <h3 class="text-center mb-4">💖 Upload Couples Photos to Check Your Future</h3>
+
+        <form id="futureForm" enctype="multipart/form-data" method="POST" action="/upload">
+
+          <div class="mb-3">
+            <label class="form-label" for="photo1">Upload Photo – Person 1</label>
+            <input class="form-control" type="file" id="photo1" accept="image/*" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="photo2">Upload Photo – Person 2</label>
+            <input class="form-control" type="file" id="photo2" accept="image/*" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="photo3">Upload Joined Couple Photo</label>
+            <input class="form-control" type="file" id="photo3" accept="image/*">
+          </div>
+          <div class="d-grid">
+            <button class="btn btn-check-future" type="submit">💑 Check Future</button>
+          </div>
+        </form>
+
+        <!--  Where animation & result appear  -->
+        <div id="resultBox" class="result-box pt-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const messages = [
+    "💘 Your hearts are perfectly matched!",
+    "💑 Together forever, written in the stars!",
+    "🌹 Your journey is full of love and joy!",
+    "💍 A happy future awaits both of you!",
+    "🌟 You're soulmates destined to shine together!",
+    "❤️ A beautiful bond that grows stronger each day!",
+    "💕 Love is in your destiny. Keep holding hands!"
+  ];
+
+  document.getElementById("futureForm").addEventListener("submit", function(e) {
+    e.preventDefault(); // stop default form submit
+
+    const form = e.target;
+    const btn = form.querySelector(".btn-check-future");
+    const resultBox = document.getElementById("resultBox");
+
+    // build form data
+    const formData = new FormData(form);
+    formData.append("photo1", document.getElementById("photo1").files[0]);
+    formData.append("photo2", document.getElementById("photo2").files[0]);
+    if (document.getElementById("photo3").files[0]) {
+      formData.append("photo3", document.getElementById("photo3").files[0]);
+    }
+
+    btn.disabled = true;
+    resultBox.innerHTML =
+      `<div class="d-flex flex-column align-items-center">
+         <i class="fas fa-heart heart-beat"></i>
+         <div id="percentText" class="result-percentage mt-2">0%</div>
+       </div>`;
+
+    // First, upload the images to the server
+    fetch("/upload", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("Upload failed");
+      return res.text(); // or res.json() if your backend returns JSON
+    })
+    .then(() => {
+      // Then, do the animation
+      const finalPercent = Math.floor(Math.random() * 41) + 60;
+      let current = 0;
+      const interval = setInterval(() => {
+        current++;
+        document.getElementById("percentText").textContent = current + "%";
+        if (current >= finalPercent) {
+          clearInterval(interval);
+          document.querySelector(".heart-beat").style.animation = "none";
+          setTimeout(() => {
+            resultBox.innerHTML =
+              `<p class="mb-1">${messages[Math.floor(Math.random() * messages.length)]}</p>
+               <p class="fw-bold h5">💗 Love Score: ${finalPercent}%</p>`;
+            btn.disabled = false;
+          }, 600);
+        }
+      }, 25);
+    })
+    .catch(err => {
+      alert("❌ Upload failed: " + err.message);
+      btn.disabled = false;
+    });
+  });
+</script>
+
+</body>
+</html>

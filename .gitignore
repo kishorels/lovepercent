@@ -1,0 +1,15 @@
+# Node modules (don't upload heavy dependencies)
+node_modules/
+
+# Environment config (contains sensitive info)
+.env
+
+# Log files
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Uploads folder (optional - only if you don't want to upload photos to Git)
+uploads/
