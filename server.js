@@ -1,9 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
-require('dotenv').config();
+
 
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
